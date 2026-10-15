@@ -1,0 +1,122 @@
+name: Build
+
+on:
+  push:
+    tags:
+      - "v*"           # e.g. v1.0.0  →  triggers a release build
+  workflow_dispatch:   # allow manual runs from the Actions tab
+
+jobs:
+  build:
+    name: Compile HorizontalScroll.exe
+    runs-on: windows-latest  # Ahk2Exe is a Windows-only tool
+
+    permissions:
+      contents: write        # needed to create the GitHub Release
+
+    steps:
+      # ── 1. Checkout ──────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # The test suite runs its behaviour checks against the original
+          # pre-cleanup commit as well as the current source, so it needs
+          # history rather than the default shallow clone.
+          fetch-depth: 0
+
+      # ── 2. Install AutoHotkey v2 (includes Ahk2Exe) ──────────────────────────
+      # The installer is downloaded directly from the official AutoHotkey CDN.
+      # The URL always serves the current v2 release, so there is no fixed
+      # SHA-256 to pin here; what this step does check is that the download is
+      # a plausible size and that Ahk2Exe exists afterwards. If you want a
+      # byte-for-byte reproducible build, change the URL to a versioned
+      # release asset and compare its hash against
+      # https://www.autohotkey.com/download/ yourself.
+      - name: Install AutoHotkey v2
+        shell: pwsh
+        run: |
+          $installer = "$env:TEMP\ahk-setup.exe"
+          $url       = "https://www.autohotkey.com/download/ahk-v2.exe"
+
+          Write-Host "Downloading AutoHotkey v2 from $url …"
+          Invoke-WebRequest -Uri $url -OutFile $installer -UseBasicParsing
+
+          Write-Host "Verifying download …"
+          $size = (Get-Item $installer).Length
+          if ($size -lt 1MB) {
+            Write-Error "Downloaded file is suspiciously small ($size bytes). Aborting."
+            exit 1
+          }
+
+          Write-Host "Installing silently …"
+          Start-Process $installer -ArgumentList "/S" -Wait -NoNewWindow
+
+          # Confirm Ahk2Exe landed where expected
+          $ahk2exe = "C:\Program Files\AutoHotkey\Compiler\Ahk2Exe.exe"
+          if (-not (Test-Path $ahk2exe)) {
+            Write-Error "Ahk2Exe not found after install at: $ahk2exe"
+            exit 1
+          }
+          Write-Host "Ahk2Exe found at: $ahk2exe"
+
+      # ── 3. Test ─────────────────────────────────────────────────────────────
+      # The suite is dependency-free: it is AutoHotkey driving AutoHotkey. It
+      # writes only to a scratch registry key under HKCU and cleans up after
+      # itself. A non-zero exit fails the build before anything is released.
+      #
+      # From bash, not PowerShell: AutoHotkey is a GUI program, so PowerShell
+      # does not reliably wait for it, never shows what it prints, and leaves
+      # $LASTEXITCODE unset. The check that used to follow compared that unset
+      # value with 0, so this step failed on every run, passing suite or not.
+      - name: Run the test suite
+        shell: bash
+        run: '"/c/Program Files/AutoHotkey/v2/AutoHotkey64.exe" tests/run.ahk'
+
+      # ── 4. Compile ───────────────────────────────────────────────────────────
+      - name: Compile HorizontalScroll.ahk → HorizontalScroll.exe
+        shell: pwsh
+        run: |
+          $ahk2exe = "C:\Program Files\AutoHotkey\Compiler\Ahk2Exe.exe"
+          $src     = "$env:GITHUB_WORKSPACE\HorizontalScroll.ahk"
+          $out     = "$env:GITHUB_WORKSPACE\HorizontalScroll.exe"
+
+          Write-Host "Compiling $src …"
+          & $ahk2exe /in $src /out $out /cp 65001
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Ahk2Exe failed with exit code $LASTEXITCODE"
+            exit $LASTEXITCODE
+          }
+
+          if (-not (Test-Path $out)) {
+            Write-Error "Output binary not found: $out"
+            exit 1
+          }
+
+          $size = (Get-Item $out).Length
+          Write-Host "Build succeeded. Output: $out ($size bytes)"
+
+      # ── 5. Upload build artifact (available on every run, tag or not) ────────
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HorizontalScroll
+          path: HorizontalScroll.exe
+          if-no-files-found: error
+          retention-days: 30
+
+      # ── 6. Create GitHub Release (only on version tags) ──────────────────────
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: HorizontalScroll.exe
+          generate_release_notes: true  # auto-fills changelog from commits
+          # Optional: uncomment and customise the release body
+          # body: |
+          #   ## HorizontalScroll ${{ github.ref_name }}
+          #   Hold **Shift + Scroll** to scroll horizontally, system-wide.
+          #
+          #   ### Install
+          #   1. Download `HorizontalScroll.exe` below
+          #   2. Run it — it changes nothing on disk
+          #   3. Optional: `HorizontalScroll.exe --install` to start at login

@@ -1,0 +1,71 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Compile HorizontalScroll",
+      "type": "shell",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\build.ps1"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true
+      },
+      "problemMatcher": {
+        "owner": "ahk2exe",
+        "fileLocation": [
+          "relative",
+          "${workspaceFolder}"
+        ],
+        "pattern": {
+          "regexp": "^.*Error.*:\\s+(.+)\\s+\\(line\\s+(\\d+)\\)",
+          "message": 1,
+          "line": 2
+        }
+      }
+    },
+    {
+      "label": "Compile and Run HorizontalScroll",
+      "dependsOn": "Compile HorizontalScroll",
+      "type": "shell",
+      "command": "Start-Process '${workspaceFolder}\\HorizontalScroll.exe'",
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Run HorizontalScroll tests",
+      "type": "shell",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "$ahk = @('C:/Program Files/AutoHotkey/v2/AutoHotkey64.exe','C:/Program Files/AutoHotkey/v2/AutoHotkey32.exe') | Where-Object { Test-Path $_ } | Select-Object -First 1; if (-not $ahk) { Write-Error 'AutoHotkey v2 not found'; exit 1 }; & $ahk '${workspaceFolder}/tests/run.ahk'; exit $LASTEXITCODE"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}

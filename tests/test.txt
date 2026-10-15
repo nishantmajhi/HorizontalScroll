@@ -1,0 +1,40 @@
+HorizontalScroll Test File — Hold SHIFT and scroll your mouse wheel LEFT or RIGHT
+====================================================================================
+
+LONG LINE TEST (scroll right to see the full line):
+----------------------------------------------------
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.
+
+CODE LINE TEST (common real-world use case):
+--------------------------------------------
+const result = someVeryLongFunctionName(argumentOne, argumentTwo, argumentThree, argumentFour, argumentFive, argumentSix, argumentSeven);
+if (result.status === "success" && result.data.payload.items.length > 0 && result.data.payload.items[0].isValid === true && result.meta.timestamp !== null) { doSomethingWithResult(result); }
+function processData(inputArray, configObject, callbackFunction, errorHandler, retryCount, timeoutMs, verbose) { return inputArray.map(item => callbackFunction(item, configObject)).filter(Boolean); }
+
+CSV / TABLE TEST (useful for spreadsheet-like views):
+------------------------------------------------------
+Name,               Age,  City,           Country,        Email,                          Phone,          Occupation,             Salary,     StartDate,  Department
+Alice Johnson,      29,   New York,        USA,            alice.johnson@email.com,        +1-555-0101,    Software Engineer,      95000,      2021-03-15, Engineering
+Bob Smith,          34,   London,          UK,             bob.smith@email.com,            +44-20-5550102, Product Manager,        88000,      2019-07-01, Product
+Carlos Rivera,      27,   Madrid,          Spain,          carlos.rivera@email.com,        +34-91-5550103, UX Designer,            72000,      2022-01-10, Design
+Diana Chen,         31,   San Francisco,   USA,            diana.chen@email.com,           +1-555-0104,    Data Scientist,         105000,     2020-11-20, Analytics
+Eva Müller,         38,   Berlin,          Germany,        eva.mueller@email.com,          +49-30-5550105, DevOps Engineer,        91000,      2018-05-05, Infrastructure
+
+RULER (measure how far you can scroll):
+----------------------------------------
+         1         2         3         4         5         6         7         8         9         10        11        12        13        14        15
+1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+
+====================================================================================
+EXPECTED BEHAVIOUR:
+  Shift + Scroll Down  →  scroll RIGHT  (see more content to the right)
+  Shift + Scroll Up    →  scroll LEFT   (go back to the left)
+
+TEST CHECKLIST:
+  [ ] Notepad          — open this file, resize window narrow, test scroll
+  [ ] VS Code          — open this file, test scroll
+  [ ] Notepad++        — open this file, test scroll
+  [ ] Chrome / Edge    — drag this file into the browser, test scroll
+  [ ] Firefox          — drag this file into the browser, test scroll
+  [ ] Windows Explorer — make the window narrow so scrollbar appears, test scroll
+====================================================================================

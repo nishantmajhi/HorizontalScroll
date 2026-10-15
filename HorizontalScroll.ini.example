@@ -1,0 +1,22 @@
+; HorizontalScroll settings.
+;
+; Copy this file to HorizontalScroll.ini, next to HorizontalScroll.exe, and
+; edit it. It is read once at startup, so restart the program after a change.
+; Every setting is optional; anything left out keeps its default.
+;
+; Run `HorizontalScroll.exe --status` to see what is actually in effect.
+
+[Scroll]
+
+; Wheel clicks sent per tick of your real wheel. 1 to 20; values outside that
+; range are clamped. Default 3.
+Multiplier=3
+
+; Swap the directions, so wheel up scrolls right. Default false.
+Reverse=false
+
+; Programs to leave alone, separated by commas. Chrome, Edge, Firefox and
+; VS Code already scroll sideways on Shift+wheel by themselves, so listing
+; them here hands those apps back their own behaviour instead of replacing it
+; at this multiplier. The .exe suffix is optional. Default: empty.
+ExcludeProcesses=
